@@ -22,7 +22,7 @@
   "files.exclude": {
     "**/*.log": true,
     "**/*.log*": true,
-    "**/dist": true,
+    "**/dist": false,
     "**/coverage": true
   },
   "files.associations": {

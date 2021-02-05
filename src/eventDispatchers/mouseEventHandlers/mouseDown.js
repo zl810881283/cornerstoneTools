@@ -1,3 +1,4 @@
+import EVENTS from '../../events.js';
 // State
 import { getters, state } from './../../store/index.js';
 import { getToolState } from './../../stateManagement/toolState.js';
@@ -7,7 +8,7 @@ import { findHandleDataNearImagePoint } from '../../util/findAndMoveHelpers.js';
 import getInteractiveToolsForElement from './../../store/getInteractiveToolsForElement.js';
 import getToolsWithDataForElement from './../../store/getToolsWithDataForElement.js';
 import filterToolsUseableWithMultiPartTools from './../../store/filterToolsUsableWithMultiPartTools.js';
-
+import triggerEvent from '../../util/triggerEvent.js';
 /**
  * MouseDown is called before MouseDownActivate. If MouseDown
  * finds an existing tool to interact with, it can prevent the
@@ -103,6 +104,15 @@ export default function(evt) {
       handle,
       'mouse'
     );
+    // Measurement Selected
+    const eventType = EVENTS.MEASUREMENT_SELECTED;
+    const eventData = {
+      toolName: firstToolWithMoveableHandles.name,
+      element,
+      measurementData: data,
+    };
+
+    triggerEvent(element, eventType, eventData);
 
     return;
   }
@@ -135,6 +145,15 @@ export default function(evt) {
       firstAnnotationNearPoint,
       'mouse'
     );
+    // Measurement Selected
+    const eventType = EVENTS.MEASUREMENT_SELECTED;
+    const eventData = {
+      toolName: firstToolNearPoint.name,
+      element,
+      measurementData: firstAnnotationNearPoint,
+    };
+
+    triggerEvent(element, eventType, eventData);
 
     return;
   }

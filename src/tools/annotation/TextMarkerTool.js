@@ -9,7 +9,8 @@ import {
   getToolState,
 } from './../../stateManagement/toolState.js';
 import { textMarkerCursor } from '../cursors/index.js';
-
+import { getLogger } from '../../util/logger.js';
+const logger = getLogger('tools:annotation:TextMarkerTool');
 /**
  * @public
  * @class TextMarkerTool
@@ -23,23 +24,28 @@ export default class TextMarkerTool extends BaseAnnotationTool {
     const defaultProps = {
       name: 'TextMarker',
       supportedInteractionTypes: ['Mouse', 'Touch'],
-      configuration: {
-        markers: [],
-        current: '',
-        ascending: true,
-        loop: false,
-        changeTextCallback,
-      },
+      configuration: {},
       svgCursor: textMarkerCursor,
     };
-
+    Object.assign(defaultProps.configuration, defaultTextMarkerConfiguration());
     super(props, defaultProps);
     this.touchPressCallback = this._changeText.bind(this);
     this.doubleClickCallback = this._changeText.bind(this);
   }
 
   createNewMeasurement(eventData) {
-    const config = this.configuration;
+    const goodEventData =
+      eventData && eventData.currentPoints && eventData.currentPoints.image;
+
+    if (!goodEventData) {
+      logger.error(
+        `required eventData not supplied to tool ${this.name}'s createNewMeasurement`
+      );
+
+      return;
+    }
+
+    const config = this.configuration || {};
 
     if (!config.current) {
       return;
@@ -50,7 +56,8 @@ export default class TextMarkerTool extends BaseAnnotationTool {
       visible: true,
       active: true,
       text: config.current,
-      color: undefined,
+      color: config.color,
+      activeColor: config.activeColor,
       handles: {
         end: {
           x: eventData.currentPoints.image.x,
@@ -235,3 +242,13 @@ const changeTextCallback = (data, eventData, doneChangingTextCallback) => {
  * @param {Object} data
  * @param {string} text - The new text
  */
+
+function defaultTextMarkerConfiguration() {
+  return {
+    markers: [],
+    current: '',
+    ascending: true,
+    loop: false,
+    changeTextCallback,
+  };
+}

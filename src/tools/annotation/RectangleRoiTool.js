@@ -5,7 +5,7 @@ import BaseAnnotationTool from '../base/BaseAnnotationTool.js';
 import { getToolState } from './../../stateManagement/toolState.js';
 import toolStyle from './../../stateManagement/toolStyle.js';
 import toolColors from './../../stateManagement/toolColors.js';
-
+import textColors from './../../stateManagement/textColors.js';
 // Drawing
 import {
   getNewContext,
@@ -47,7 +47,9 @@ export default class RectangleRoiTool extends BaseAnnotationTool {
         hideHandlesIfMoving: false,
         renderDashed: false,
         // showMinMax: false,
-        // showHounsfieldUnits: true
+        // showHounsfieldUnits: true,
+        hideTextBox: false,
+        textBoxOnHover: false,
       },
       svgCursor: rectangleRoiCursor,
     };
@@ -68,11 +70,12 @@ export default class RectangleRoiTool extends BaseAnnotationTool {
 
       return;
     }
-
+    const config = this.configuration || {};
     return {
       visible: true,
       active: true,
-      color: undefined,
+      color: config.color,
+      activeColor: config.activeColor,
       invalidated: true,
       handles: {
         start: {
@@ -90,11 +93,15 @@ export default class RectangleRoiTool extends BaseAnnotationTool {
         initialRotation: eventData.viewport.rotation,
         textBox: {
           active: false,
+          color: undefined,
+          activeColor: undefined,
           hasMoved: false,
           movesIndependently: false,
           drawnIndependently: true,
           allowedOutsideImage: true,
           hasBoundingBox: true,
+          hide: false,
+          hover: false,
         },
       },
     };
@@ -228,6 +235,19 @@ export default class RectangleRoiTool extends BaseAnnotationTool {
         if (this.configuration.drawHandles) {
           drawHandles(context, eventData, data.handles, handleOptions);
         }
+        // Hide TextBox
+        if (this.configuration.hideTextBox || data.handles.textBox.hide) {
+          continue;
+        }
+        // TextBox OnHover
+        data.handles.textBox.hasBoundingBox =
+          !this.configuration.textBoxOnHover && !data.handles.textBox.hover;
+        if (
+          (this.configuration.textBoxOnHover || data.handles.textBox.hover) &&
+          !data.active
+        ) {
+          continue;
+        }
 
         // Update textbox stats
         if (data.invalidated === true) {
@@ -259,6 +279,9 @@ export default class RectangleRoiTool extends BaseAnnotationTool {
           this.configuration
         );
 
+        // Text Colors
+        const textColor = textColors.getColorIfActive(data);
+
         data.unit = _getUnit(modality, this.configuration.showHounsfieldUnits);
 
         drawLinkedTextBox(
@@ -268,7 +291,7 @@ export default class RectangleRoiTool extends BaseAnnotationTool {
           textBoxContent,
           data.handles,
           textBoxAnchorPoints,
-          color,
+          textColor,
           lineWidth,
           10,
           true

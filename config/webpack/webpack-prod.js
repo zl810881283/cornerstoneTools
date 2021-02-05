@@ -17,7 +17,7 @@ const prodConfig = {
         terserOptions: {
           // https://github.com/webpack-contrib/terser-webpack-plugin#terseroptions
           compress: {
-            drop_console: true,
+            drop_console: false,
           },
         },
       }),
